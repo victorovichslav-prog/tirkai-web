@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-TirkAI Web Server — FastAPI + OpenRouter API
+TirkAI Web Server — Lite Edition
+Работает на 512MB RAM!
 """
 
 import os, logging
@@ -19,12 +20,12 @@ tirkai = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global tirkai
-    logger.info("🚀 Loading TirkAI...")
+    logger.info("🚀 Loading TirkAI Lite...")
     api_key = os.environ.get("OPENROUTER_API_KEY")
     if not api_key:
-        logger.warning("⚠️ OPENROUTER_API_KEY not set! Add it in Render dashboard.")
-    tirkai = TirkAI(knowledge_path="knowledge.txt", api_key=api_key)
-    logger.info("✅ TirkAI ready!")
+        logger.warning("⚠️ OPENROUTER_API_KEY not set!")
+    tirkai = TirkAI(api_key=api_key)
+    logger.info("✅ TirkAI Lite ready!")
     yield
     logger.info("👋 Shutting down...")
 
@@ -39,14 +40,10 @@ async def index(request: Request):
 @app.post("/api/chat")
 async def api_chat(question: str = Form(...)):
     if not tirkai:
-        return JSONResponse({"error": "Model not loaded"}, status_code=503)
-
+        return JSONResponse({"error": "Not loaded"}, status_code=503)
     try:
         result = tirkai.ask(question)
-        return JSONResponse({
-            "answer": result["answer"],
-            "context_preview": result["context"][:200] + "..." if len(result["context"]) > 200 else result["context"]
-        })
+        return JSONResponse({"answer": result["answer"]})
     except Exception as e:
         logger.error(f"Error: {e}")
         return JSONResponse({"error": str(e)}, status_code=500)
