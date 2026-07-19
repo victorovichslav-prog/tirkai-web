@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TirkAI — Личный ИИ Святослава</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🧠</div>
+                <div class="logo-text">
+                    <h1>TirkAI</h1>
+                    <span>v2.0</span>
+                </div>
+            </div>
+
+            <nav class="nav">
+                <button class="nav-btn active" onclick="newChat()">
+                    <span>➕</span> Новый чат
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <p>🚀 Qwen2.5-7B-Instruct</p>
+                <p>📚 База знаний: knowledge.txt</p>
+                <p>👤 Создатель: Святослав</p>
+            </div>
+        </aside>
+
+        <!-- Main Chat -->
+        <main class="chat-container">
+            <header class="chat-header">
+                <h2>💬 Чат с TirkAI</h2>
+                <div class="status">
+                    <span class="status-dot online"></span>
+                    <span id="status-text">Онлайн</span>
+                </div>
+            </header>
+
+            <div class="messages" id="messages">
+                <!-- Welcome message -->
+                <div class="message bot">
+                    <div class="avatar">🤖</div>
+                    <div class="bubble">
+                        <p>Привет! Я <strong>TirkAI</strong> — личный ИИ-ассистент, созданный Святославом.</p>
+                        <p>Я умею писать код, отвечать на вопросы, помогать с учебой и просто болтать. Спроси что-нибудь! 🚀</p>
+                        <div class="suggestions">
+                            <button onclick="sendSuggestion(this)">Кто ты?</button>
+                            <button onclick="sendSuggestion(this)">Расскажи про TirkOS</button>
+                            <button onclick="sendSuggestion(this)">Напиши код сортировки</button>
+                            <button onclick="sendSuggestion(this)">Как приготовить борщ?</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <form id="chat-form" onsubmit="sendMessage(event)">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="user-input" 
+                            placeholder="Напиши сообщение..." 
+                            rows="1"
+                            onkeydown="handleKeydown(event)"
+                        ></textarea>
+                        <button type="submit" class="send-btn" id="send-btn">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </form>
+                <p class="disclaimer">TirkAI может ошибаться. Проверяй важную информацию.</p>
+            </div>
+        </main>
+    </div>
+
+    <!-- Loading overlay -->
+    <div class="loading-overlay" id="loading">
+        <div class="spinner"></div>
+        <p>Загрузка модели...</p>
+    </div>
+
+    <script>
+        const messagesDiv = document.getElementById('messages');
+        const input = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+        const loading = document.getElementById('loading');
+        const statusText = document.getElementById('status-text');
+
+        // Auto-resize textarea
+        input.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Check health on load
+        fetch('/api/health')
+            .then(r => r.json())
+            .then(data => {
+                if (data.model_loaded) {
+                    loading.style.display = 'none';
+                    statusText.textContent = 'Онлайн';
+                }
+            })
+            .catch(() => {
+                statusText.textContent = 'Оффлайн';
+                document.querySelector('.status-dot').classList.remove('online');
+            });
+
+        function handleKeydown(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+            }
+        }
+
+        function sendSuggestion(btn) {
+            input.value = btn.textContent;
+            document.getElementById('chat-form').dispatchEvent(new Event('submit'));
+        }
+
+        function newChat() {
+            messagesDiv.innerHTML = `
+                <div class="message bot">
+                    <div class="avatar">🤖</div>
+                    <div class="bubble">
+                        <p>Привет! Я <strong>TirkAI</strong> — личный ИИ-ассистент, созданный Святославом.</p>
+                        <p>Чем могу помочь? 🚀</p>
+                    </div>
+                </div>
+            `;
+            input.value = '';
+            input.style.height = 'auto';
+        }
+
+        function addMessage(text, isUser) {
+            const div = document.createElement('div');
+            div.className = `message ${isUser ? 'user' : 'bot'}`;
+            div.innerHTML = `
+                <div class="avatar">${isUser ? '👤' : '🤖'}</div>
+                <div class="bubble">
+                    <div class="text">${formatText(text)}</div>
+                </div>
+            `;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function addTyping() {
+            const div = document.createElement('div');
+            div.className = 'message bot typing-indicator';
+            div.id = 'typing';
+            div.innerHTML = `
+                <div class="avatar">🤖</div>
+                <div class="bubble">
+                    <div class="dots">
+                        <span></span><span></span><span></span>
+                    </div>
+                </div>
+            `;
+            messagesDiv.appendChild(div);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function removeTyping() {
+            const typing = document.getElementById('typing');
+            if (typing) typing.remove();
+        }
+
+        function formatText(text) {
+            // Escape HTML
+            text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // Code blocks
+            text = text.replace(/```(\w+)?
+([\s\S]*?)```/g, '<pre><code>$2</code></pre>');
+            text = text.replace(/`([^`]+)`/g, '<code>$1</code>');
+            // Bold
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            // Italic
+            text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            // Links
+            text = text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>');
+            // Line breaks
+            text = text.replace(/
+/g, '<br>');
+            return text;
+        }
+
+        async function sendMessage(e) {
+            e.preventDefault();
+            const text = input.value.trim();
+            if (!text) return;
+
+            addMessage(text, true);
+            input.value = '';
+            input.style.height = 'auto';
+            input.disabled = true;
+            sendBtn.disabled = true;
+
+            addTyping();
+
+            try {
+                const formData = new FormData();
+                formData.append('question', text);
+
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+                removeTyping();
+
+                if (data.error) {
+                    addMessage('❌ Ошибка: ' + data.error, false);
+                } else {
+                    addMessage(data.answer, false);
+                }
+            } catch (err) {
+                removeTyping();
+                addMessage('❌ Не удалось связаться с сервером. Попробуй позже.', false);
+            }
+
+            input.disabled = false;
+            sendBtn.disabled = false;
+            input.focus();
+        }
+    </script>
+</body>
+</html>

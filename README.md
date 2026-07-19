@@ -1,81 +1,59 @@
-# 🧠 TirkAI Web
+# 🧠 TirkAI Web — API Edition (БЕСПЛАТНО!)
 
-Личный ИИ-ассистент на Qwen2.5-7B с веб-интерфейсом.
+Личный ИИ-ассистент через OpenRouter API. Работает на бесплатном плане Render!
 
-## 📁 Структура
+## ✅ Что изменилось
 
-```
-tirkai-site/
-├── app.py              # FastAPI сервер
-├── tirkai.py           # Ядро TirkAI
-├── knowledge.txt       # База знаний (замени на свою!)
-├── requirements.txt    # Зависимости
-├── Dockerfile          # Для Render
-├── render.yaml         # Конфиг Render
-├── static/style.css    # Стили
-└── templates/index.html # Веб-интерфейс
-```
+- ❌ Больше НЕ нужен GPU / 4GB RAM
+- ❌ Больше НЕ скачивается 7B модель
+- ✅ Работает через API (OpenRouter)
+- ✅ **Free план на Render — 512 MB RAM достаточно!**
+- ✅ Qwen 2.5 7B работает через облако
 
-## 🚀 Запуск локально
+## 📋 Что нужно сделать
 
-```bash
-pip install -r requirements.txt
-python app.py
-```
+### 1. Получи API ключ на OpenRouter
 
-Открой http://localhost:8000
+1. Иди на https://openrouter.ai
+2. Нажми **"Sign Up"** → зарегистрируйся (можно через Google)
+3. Перейди в **"Keys"** (ключи)
+4. Нажми **"Create Key"**
+5. Скопируй ключ (выглядит как `sk-or-v1-...`)
 
-## 🌐 Деплой на Render
+### 2. Загрузи файлы на GitHub
 
-### 1. Создай репозиторий на GitHub
-```bash
-git init
-git add .
-git commit -m "Initial commit"
-git branch -M main
-git remote add origin https://github.com/ТВОЙ_НИК/tirkai-web.git
-git push -u origin main
-```
+Замени файлы в своём репозитории `tirkai-web` на новые из этого архива.
 
-### 2. На Render.com:
-1. New → Web Service
-2. Подключи GitHub репо
-3. Runtime: Docker
-4. Plan: **Standard** (нужен для 7B модели, минимум 4GB RAM)
-   - Или **Starter** (бесплатно, но модель загрузится в 8-bit и будет медленнее)
-5. Environment Variables добавь:
-   - `TRANSFORMERS_CACHE` = `/tmp/huggingface`
-   - `HF_HOME` = `/tmp/huggingface`
-6. Deploy!
+### 3. Деплой на Render (Free!)
 
-### 3. Замени knowledge.txt
-Замени файл `knowledge.txt` на свою базу знаний. Формат:
-```
-Заголовок темы
+1. На Render нажми **"New +"** → **"Web Service"**
+2. Выбери репозиторий `tirkai-web`
+3. Настройки:
+   - **Name:** `tirkai`
+   - **Runtime:** Docker
+   - **Plan:** **Free** (бесплатно!)
+4. Нажми **"Advanced"**
+5. Добавь переменную:
+   - Key: `OPENROUTER_API_KEY`
+   - Value: `sk-or-v1-...` (твой ключ из шага 1)
+6. Нажми **"Create Web Service"**
 
-Текст знания. Можно несколько абзацев.
+### 4. Готово! 🎉
 
-Следующая тема
+Жди 2-3 минуты пока соберётся. Сайт будет по ссылке типа `https://tirkai.onrender.com`
 
-Ещё текст...
-```
+## 💰 Сколько стоит?
 
-## ⚠️ Важно
+- **Render:** $0 (Free план)
+- **OpenRouter:** $0 (дают $5 бесплатно, на Qwen 2.5 хватит надолго)
 
-- **Qwen 7B в 4-bit** требует ~4GB VRAM (GPU) или ~8GB RAM (CPU)
-- На Render бесплатный план (Starter) даёт 512MB RAM — **недостаточно** для 7B
-- Нужен минимум **Standard** план (2GB RAM) или лучше **Pro** (4GB+)
-- Альтернатива: используй меньшую модель (Qwen2.5-1.5B или 3B) — измени `MODEL_NAME` в `tirkai.py`
+## 📝 Замени knowledge.txt
 
-## 🔧 Альтернативные модели (если не хватает RAM)
+Замени файл `knowledge.txt` на свою базу знаний. Перезагрузи сайт на Render после изменений.
 
-В `tirkai.py` замени:
-```python
-MODEL_NAME = "Qwen/Qwen2.5-1.5B-Instruct"  # ~1.5GB RAM
-# или
-MODEL_NAME = "Qwen/Qwen2.5-3B-Instruct"    # ~3GB RAM
-```
+## 🆘 Помощь
 
-## 📄 Лицензия
-
-Твой проект, делай что хочешь 🔥
+Если ошибка — проверь:
+1. API ключ правильно скопирован?
+2. В Render добавлена переменная `OPENROUTER_API_KEY`?
+3. Все файлы загружены на GitHub?

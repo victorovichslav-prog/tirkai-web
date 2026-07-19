@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
-TirkAI Web Server — FastAPI + Jinja2
+TirkAI Web Server — FastAPI + OpenRouter API
 """
 
-import os, asyncio, logging
+import os, logging
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -14,14 +14,16 @@ from tirkai import TirkAI
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("TirkAI-Server")
 
-# Глобальная переменная для модели
 tirkai = None
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global tirkai
     logger.info("🚀 Loading TirkAI...")
-    tirkai = TirkAI(knowledge_path="knowledge.txt")
+    api_key = os.environ.get("OPENROUTER_API_KEY")
+    if not api_key:
+        logger.warning("⚠️ OPENROUTER_API_KEY not set! Add it in Render dashboard.")
+    tirkai = TirkAI(knowledge_path="knowledge.txt", api_key=api_key)
     logger.info("✅ TirkAI ready!")
     yield
     logger.info("👋 Shutting down...")
@@ -29,10 +31,6 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="TirkAI", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
-
-# ═══════════════════════════════════════════════════════════════
-# РОУТЫ
-# ═══════════════════════════════════════════════════════════════
 
 @app.get("/", response_class=HTMLResponse)
 async def index(request: Request):

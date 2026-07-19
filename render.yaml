@@ -2,14 +2,10 @@ services:
   - type: web
     name: tirkai
     runtime: docker
-    plan: standard  # Меняй на starter для бесплатного, но медленного
+    plan: free
     envVars:
       - key: PYTHONUNBUFFERED
         value: "1"
-      - key: TRANSFORMERS_CACHE
-        value: /tmp/huggingface
-      - key: HF_HOME
-        value: /tmp/huggingface
       - key: PORT
         value: "8000"
     healthCheckPath: /api/health
